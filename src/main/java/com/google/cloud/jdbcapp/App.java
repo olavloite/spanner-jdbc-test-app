@@ -25,6 +25,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
@@ -68,6 +69,7 @@ public class App {
     int rateM1 = Integer.parseInt(System.getenv().getOrDefault("RATE_M1", "100"));
     int rateM2 = Integer.parseInt(System.getenv().getOrDefault("RATE_M2", "10"));
     int threads = Integer.parseInt(System.getenv().getOrDefault("THREADS", "10"));
+    boolean useFixedRate = Boolean.parseBoolean(System.getenv().getOrDefault("USE_FIXED_RATE", "false"));
 
     System.out.println("Starting benchmark with:");
     System.out.println("JDBC URL: " + jdbcUrl);
@@ -75,6 +77,7 @@ public class App {
     System.out.println("Rate M1: " + rateM1 + "/s");
     System.out.println("Rate M2: " + rateM2 + "/s");
     System.out.println("Threads: " + threads);
+    System.out.println("Use Fixed Rate: " + useFixedRate);
 
     BlockingQueue<Connection> connectionPool = new ArrayBlockingQueue<>(poolSize);
     for (int i = 0; i < poolSize; i++) {
@@ -83,24 +86,34 @@ public class App {
 
     ExecutorService executor = Executors.newFixedThreadPool(threads);
 
-    // Schedule Test Method 1
-    if (rateM1 > 0) {
-      new Thread(() -> {
-        while (!Thread.currentThread().isInterrupted()) {
-          executor.submit(() -> executeTestMethod(connectionPool, "select", App::testMethod1));
-          LockSupport.parkNanos(calculatePoissonDelay(rateM1));
-        }
-      }, "RateM1-Generator").start();
-    }
+    if (useFixedRate) {
+      ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
+      if (rateM1 > 0) {
+        scheduler.scheduleAtFixedRate(() -> executor.submit(() -> executeTestMethod(connectionPool, "select", App::testMethod1)), 0, 1_000_000L / rateM1, TimeUnit.MICROSECONDS);
+      }
+      if (rateM2 > 0) {
+        scheduler.scheduleAtFixedRate(() -> executor.submit(() -> executeTestMethod(connectionPool, "insert", App::testMethod2)), 0, 1_000_000L / rateM2, TimeUnit.MICROSECONDS);
+      }
+    } else {
+      // Schedule Test Method 1
+      if (rateM1 > 0) {
+        new Thread(() -> {
+          while (!Thread.currentThread().isInterrupted()) {
+            executor.submit(() -> executeTestMethod(connectionPool, "select", App::testMethod1));
+            LockSupport.parkNanos(calculatePoissonDelay(rateM1));
+          }
+        }, "RateM1-Generator").start();
+      }
 
-    // Schedule Test Method 2
-    if (rateM2 > 0) {
-      new Thread(() -> {
-        while (!Thread.currentThread().isInterrupted()) {
-          executor.submit(() -> executeTestMethod(connectionPool, "insert", App::testMethod2));
-          LockSupport.parkNanos(calculatePoissonDelay(rateM2));
-        }
-      }, "RateM2-Generator").start();
+      // Schedule Test Method 2
+      if (rateM2 > 0) {
+        new Thread(() -> {
+          while (!Thread.currentThread().isInterrupted()) {
+            executor.submit(() -> executeTestMethod(connectionPool, "insert", App::testMethod2));
+            LockSupport.parkNanos(calculatePoissonDelay(rateM2));
+          }
+        }, "RateM2-Generator").start();
+      }
     }
 
     // Keep running
