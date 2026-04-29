@@ -33,6 +33,7 @@ import java.util.concurrent.locks.LockSupport;
 public class App {
 
   private static final String DEFAULT_URL = "jdbc:cloudspanner:/projects/appdev-soda-spanner-staging/instances/knut-test-ycsb/databases/spring-data-jpa;numChannels=16";
+  //private static final String DEFAULT_URL = "jdbc:custom_spanner_driver:/projects/appdev-soda-spanner-staging/instances/knut-test-ycsb/databases/spring-data-jpa;numChannels=16";
   private static LongHistogram latencyHistogram;
 
   public static void main(String[] args) throws Exception {

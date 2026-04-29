@@ -3,6 +3,7 @@ package com.google.cloud.spanner.jdbc;
 import com.google.cloud.spanner.SessionPoolOptions;
 import com.google.cloud.spanner.SessionPoolOptionsHelper;
 import com.google.cloud.spanner.SpannerException;
+import com.google.cloud.spanner.connection.AggressiveDynamicScalingConfigurator;
 import com.google.cloud.spanner.connection.ConnectionOptions;
 import com.google.cloud.spanner.connection.ConnectionOptionsHelper;
 import com.google.cloud.spanner.connection.DisableGrpcGcpConfigurator;
@@ -117,7 +118,14 @@ public class CustomDriver extends JdbcDriver {
     // Enable direct executor for JDBC, as we don't use the async API.
     builder =
         ConnectionOptionsHelper.useDirectExecutorIfNotUseVirtualThreads(connectionUrl, builder);
-    builder = Helper.setConfigurator(builder, new DisableGrpcGcpConfigurator());
+    boolean disableGrpcGcp = Boolean.parseBoolean(System.getenv().getOrDefault("DISABLE_GCP", "false"));
+    boolean aggressiveScaling = Boolean.parseBoolean(System.getenv().getOrDefault("AGGRESSIVE_SCALING", "false"));
+
+    if (disableGrpcGcp) {
+      builder = Helper.setConfigurator(builder, new DisableGrpcGcpConfigurator());
+    } else if (aggressiveScaling) {
+      builder = Helper.setConfigurator(builder, new AggressiveDynamicScalingConfigurator());
+    }
     return builder.build();
   }
 }
