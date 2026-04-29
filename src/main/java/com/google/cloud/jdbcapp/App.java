@@ -2,6 +2,7 @@ package com.google.cloud.jdbcapp;
 
 import com.google.cloud.opentelemetry.metric.GoogleCloudMetricExporter;
 import com.google.cloud.opentelemetry.metric.MetricConfiguration;
+import com.google.cloud.spanner.jdbc.CustomDriver;
 import io.grpc.opentelemetry.GrpcOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -35,6 +36,8 @@ public class App {
   private static LongHistogram latencyHistogram;
 
   public static void main(String[] args) throws Exception {
+    Class.forName(CustomDriver.class.getName());
+
     // Create a standard OpenTelemetry SDK.
     OpenTelemetry openTelemetry = OpenTelemetrySdk.builder()
         .setMeterProvider(SdkMeterProvider.builder()
