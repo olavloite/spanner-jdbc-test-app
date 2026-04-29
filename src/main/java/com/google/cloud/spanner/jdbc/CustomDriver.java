@@ -122,8 +122,10 @@ public class CustomDriver extends JdbcDriver {
     boolean aggressiveScaling = Boolean.parseBoolean(System.getenv().getOrDefault("AGGRESSIVE_SCALING", "false"));
 
     if (disableGrpcGcp) {
+      System.out.println("Disabling grpc-gcp");
       builder = Helper.setConfigurator(builder, new DisableGrpcGcpConfigurator());
     } else if (aggressiveScaling) {
+      System.out.println("Enabling aggressive scaling");
       builder = Helper.setConfigurator(builder, new AggressiveDynamicScalingConfigurator());
     }
     return builder.build();
