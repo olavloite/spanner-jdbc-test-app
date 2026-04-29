@@ -31,7 +31,7 @@ import java.util.concurrent.locks.LockSupport;
 
 public class App {
 
-  private static final String DEFAULT_URL = "jdbc:cloudspanner:/projects/appdev-soda-spanner-staging/instances/knut-test-ycsb/databases/spring-data-jpa";
+  private static final String DEFAULT_URL = "jdbc:cloudspanner:/projects/appdev-soda-spanner-staging/instances/knut-test-ycsb/databases/spring-data-jpa;numChannels=16";
   private static LongHistogram latencyHistogram;
 
   public static void main(String[] args) throws Exception {
@@ -65,10 +65,10 @@ public class App {
         .build();
 
     String jdbcUrl = System.getenv().getOrDefault("JDBC_URL", DEFAULT_URL);
-    int poolSize = Integer.parseInt(System.getenv().getOrDefault("POOL_SIZE", "10"));
-    int rateM1 = Integer.parseInt(System.getenv().getOrDefault("RATE_M1", "100"));
-    int rateM2 = Integer.parseInt(System.getenv().getOrDefault("RATE_M2", "10"));
-    int threads = Integer.parseInt(System.getenv().getOrDefault("THREADS", "10"));
+    int poolSize = Integer.parseInt(System.getenv().getOrDefault("POOL_SIZE", "1000"));
+    int rateM1 = Integer.parseInt(System.getenv().getOrDefault("RATE_M1", "6000"));
+    int rateM2 = Integer.parseInt(System.getenv().getOrDefault("RATE_M2", "8000"));
+    int threads = Integer.parseInt(System.getenv().getOrDefault("THREADS", "1000"));
     boolean useFixedRate = Boolean.parseBoolean(System.getenv().getOrDefault("USE_FIXED_RATE", "false"));
 
     System.out.println("Starting benchmark with:");
