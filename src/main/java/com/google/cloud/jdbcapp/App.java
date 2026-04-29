@@ -152,7 +152,7 @@ public class App {
 
   private static void testMethod1(Connection conn) throws SQLException {
     conn.setAutoCommit(true);
-    long randomId = ThreadLocalRandom.current().nextLong(1, 1_000_001);
+    long randomId = ThreadLocalRandom.current().nextLong(1, 100_000_001);
 
     try (PreparedStatement stmt = conn.prepareStatement("SELECT id, value FROM test WHERE id = ?")) {
       stmt.setLong(1, randomId);
@@ -167,7 +167,7 @@ public class App {
   private static void testMethod2(Connection conn) throws SQLException {
     conn.setAutoCommit(false);
     try {
-      long randomId = ThreadLocalRandom.current().nextLong(1, 1_000_001);
+      long randomId = ThreadLocalRandom.current().nextLong(1, 100_000_001);
       // 1. Select
       boolean exists = false;
       try (PreparedStatement stmt = conn.prepareStatement("SELECT id FROM test WHERE id = ?")) {
